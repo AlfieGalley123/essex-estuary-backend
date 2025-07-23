@@ -2,7 +2,7 @@ import { parse } from 'querystring';
 
 export const config = {
   api: {
-    bodyParser: false, // Required for parsing Twilio form data
+    bodyParser: false, // Disable Vercel's default body parsing
   },
 };
 
@@ -11,22 +11,22 @@ export default async function handler(req, res) {
     return res.status(405).send('Method Not Allowed');
   }
 
-  let rawBody = '';
+  let body = '';
 
+  // Collect the raw data
   await new Promise((resolve, reject) => {
     req.on('data', chunk => {
-      rawBody += chunk.toString();
+      body += chunk.toString();
     });
     req.on('end', resolve);
     req.on('error', reject);
   });
 
-  const { From, Body } = parse(rawBody);
+  const parsedBody = parse(body);
+  const from = parsedBody.From || 'Unknown';
 
-  console.log(`💬 SMS from ${From}: ${Body}`);
-
-  // You could forward this to your Mac app or store it later
+  console.log(`📞 Incoming Call from ${from}`);
 
   res.setHeader('Content-Type', 'text/xml');
-  res.status(200).send('<Response></Response>');
+  res.status(200).send(`<Response><Say>Welcome to Essex Estuary Radio!</Say></Response>`);
 }
